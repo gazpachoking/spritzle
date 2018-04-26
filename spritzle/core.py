@@ -49,6 +49,7 @@ class Core(object):
         # TODO check dir for rw, etc
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.session_stats_future = None
+        self.save_resume_data_task = None
         # A place to keep additional data on torrents, that isn't stored in
         # libtorrent.  This is key'd on info_hash.
         self.torrent_data = {}
@@ -105,16 +106,24 @@ class Core(object):
         await self.load_session_state()
         await self.alert.start(self.session)
         await self.load_resume_data()
+        self.save_resume_data_task = asyncio.ensure_future(self._save_resume_data_loop())
         log.debug('Core started.')
 
     async def stop(self):
         log.debug('Core stopping..')
+        if self.save_resume_data_task:
+            self.save_resume_data_task.cancel()
         await self.save_session_state()
         await self.save_resume_data()
         await self.alert.stop()
         del self.session
         self.session = None
         log.debug('Core stopped..')
+
+    async def _save_resume_data_loop(self):
+        while True:
+            await asyncio.sleep(60)
+            await self.save_resume_data()
 
     async def save_session_state(self):
         state = await asyncio.get_event_loop().run_in_executor(

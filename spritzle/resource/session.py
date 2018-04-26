@@ -25,6 +25,23 @@ from aiohttp import web
 routes = web.RouteTableDef()
 
 
+@routes.get('/session/settings')
+async def get_session_settings(request):
+    core = request.app['spritzle.core']
+    settings = core.session.get_settings()
+    return web.json_response(settings)
+
+
+@routes.patch('/session/settings')
+async def get_session_settings(request):
+    core = request.app['spritzle.core']
+    settings = core.session.get_settings()
+    new_settings = await request.json()
+    settings.update(new_settings)
+    core.session.apply_settings(settings)
+    return web.Response()
+
+
 @routes.get('/session/stats')
 async def get_session_stats(request):
     core = request.app['spritzle.core']

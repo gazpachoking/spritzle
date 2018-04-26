@@ -174,9 +174,9 @@ async def torrent_action(request):
         )
 
     handle = get_valid_handle(core, tid)
-    try:
-        method = getattr(handle, body['action'])
-    except AttributeError:
+
+    method = getattr(handle, body['action'], None)
+    if not method or not callable(method):
         raise web.HTTPBadRequest(reason=f"Invalid action '{body['action']}'")
     try:
         method(*body.get('args', []))

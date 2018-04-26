@@ -25,11 +25,11 @@ from aiohttp import web
 routes = web.RouteTableDef()
 
 
-@routes.get('/session')
-async def get_session(request):
+@routes.get('/session/stats')
+async def get_session_stats(request):
     core = request.app['spritzle.core']
-    status = await core.get_session_status()
-    return web.json_response(status)
+    stats = await core.get_session_stats()
+    return web.json_response(stats)
 
 
 @routes.get('/session/dht')

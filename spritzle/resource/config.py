@@ -35,5 +35,13 @@ async def get_config(request):
 async def put_config(request):
     config = request.app['spritzle.config']
     new_values = await request.json()
+    config.data = new_values
+    return web.Response()
+
+
+@routes.patch('/config')
+async def put_config(request):
+    config = request.app['spritzle.config']
+    new_values = await request.json()
     config.update(new_values)
     return web.Response()

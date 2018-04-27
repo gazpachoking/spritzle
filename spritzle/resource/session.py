@@ -28,18 +28,26 @@ routes = web.RouteTableDef()
 @routes.get('/session/settings')
 async def get_session_settings(request):
     core = request.app['spritzle.core']
-    settings = core.session.get_settings()
-    return web.json_response(settings)
+    return web.json_response(core.session.get_settings())
 
 
-@routes.patch('/session/settings')
-async def get_session_settings(request):
+@routes.put('/settings')
+async def put_settings(request):
     core = request.app['spritzle.core']
-    settings = core.session.get_settings()
-    new_settings = await request.json()
-    settings.update(new_settings)
-    core.session.apply_settings(settings)
-    return web.Response()
+    settings = await request.json()
+    current = core.session.get_settings()
+
+    # Do our best to coerce what the client sent into the proper types that
+    # libtorrent expects.
+    for key, value in current.items():
+        if key in settings and type(settings[key]) != type(value):
+            settings[key] = type(value)(settings[key])
+
+    try:
+        core.session.apply_settings(settings)
+    except KeyError as e:
+        raise web.HTTPBadRequest(reason=e)
+    return web.json_response()
 
 
 @routes.get('/session/stats')

@@ -32,7 +32,6 @@ import aiohttp
 import spritzle.resource.auth
 import spritzle.resource.config
 import spritzle.resource.session
-import spritzle.resource.settings
 import spritzle.resource.torrent
 
 from spritzle.core import Core
@@ -66,7 +65,6 @@ def setup_routes():
     app.router.add_routes(spritzle.resource.auth.routes)
     app.router.add_routes(spritzle.resource.config.routes)
     app.router.add_routes(spritzle.resource.session.routes)
-    app.router.add_routes(spritzle.resource.settings.routes)
     app.router.add_routes(spritzle.resource.torrent.routes)
 
 

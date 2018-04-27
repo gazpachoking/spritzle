@@ -40,7 +40,7 @@ async def put_config(request):
 
 
 @routes.patch('/config')
-async def put_config(request):
+async def patch_config(request):
     config = request.app['spritzle.config']
     new_values = await request.json()
     config.update(new_values)

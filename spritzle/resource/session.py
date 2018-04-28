@@ -31,8 +31,8 @@ async def get_session_settings(request):
     return web.json_response(core.session.get_settings())
 
 
-@routes.put('/settings')
-async def put_settings(request):
+@routes.put('/session/settings')
+async def put_session_settings(request):
     core = request.app['spritzle.core']
     settings = await request.json()
     current = core.session.get_settings()

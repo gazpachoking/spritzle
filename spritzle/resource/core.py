@@ -1,5 +1,5 @@
 #
-# spritzle/session.py
+# spritzle/core.py
 #
 # Copyright (C) 2016 Andrew Resch <andrewresch@gmail.com>
 #
@@ -25,14 +25,9 @@ from aiohttp import web
 routes = web.RouteTableDef()
 
 
-@routes.get('/session')
-async def get_session(request):
-    core = request.app['spritzle.core']
-    status = await core.get_session_status()
-    return web.json_response(status)
-
-
-@routes.get('/session/dht')
-async def get_session_dht(request):
-    core = request.app['spritzle.core']
-    return web.json_response(core.session.is_dht_running())
+@routes.delete('/core')
+async def delete_core(request):
+    def shutdown():
+        raise web.GracefulExit()
+    request.loop.call_soon(shutdown)
+    return web.Response()

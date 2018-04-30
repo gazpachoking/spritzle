@@ -28,7 +28,7 @@ Returns a dictionary of the session stats.
 **Example**
 
 ```shell
-$ curl -i -X GET http://localhost:8080/session
+$ curl -i -X GET http://localhost:8080/session/stats
 HTTP/1.1 200 OK
 CONTENT-TYPE: application/json; charset=utf-8
 CONTENT-LENGTH: 8997

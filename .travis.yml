@@ -4,7 +4,7 @@ python:
 addons:
   apt:
     sources:
-    - ubuntu-toolchain-r-tes
+    - ubuntu-toolchain-r-test
     packages:
     - libboost1.55-all-dev
     - libboost1.55-tools-dev

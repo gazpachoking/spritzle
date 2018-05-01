@@ -10,7 +10,7 @@ addons:
     - libboost1.55-tools-dev
     - g++-5
 before_install:
-- find / -name boost_python*.so
+- find / -name libboost_python*.so
 - which python
 - printenv
 - ls $VIRTUAL_ENV

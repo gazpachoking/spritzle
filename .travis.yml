@@ -5,6 +5,7 @@ addons:
   apt:
     packages:
     - libboost-dev
+    - libboost-tools-dev
 before_install:
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip

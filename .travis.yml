@@ -15,6 +15,7 @@ before_install:
 - printenv
 - ls $VIRTUAL_ENV
 - ls $PYENV_ROOT
+- ls /usr/lib
 #- >
 #  echo -e "using python : 3.6 : $VIRTUAL_ENV/bin/python : $VIRTUAL_ENV/include : $VIRTUAL_ENV/lib ;" > ~/user-config.jam
 - >
@@ -23,5 +24,6 @@ before_install:
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python
+- python setup.py build install
 - bjam crypto=openssl
 - ls -R

@@ -8,7 +8,8 @@ addons:
     - libboost-tools-dev
 before_install:
 - which python
-- echo "using python : 3.6 ;" >> ~/user-config.jam
+- printenv
+- echo "using python : 3.6 ;" > ~/user-config.jam
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python

@@ -9,7 +9,6 @@ addons:
     - libboost1.55-all-dev
     - libboost1.55-tools-dev
     - g++-5
-    - dh-python
 before_install:
 - which python
 - printenv
@@ -24,6 +23,6 @@ before_install:
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python
-- python setup.py build install
-- bjam crypto=openssl
+- python setup.py build --bjam
+#- bjam crypto=openssl
 - ls -R

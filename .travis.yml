@@ -12,8 +12,11 @@ before_install:
 - which python
 - printenv
 - ls $VIRTUAL_ENV
+- ls $PYENV_ROOT
+#- >
+#  echo -e "using python : 3.6 : $VIRTUAL_ENV/bin/python : $VIRTUAL_ENV/include : $VIRTUAL_ENV/lib ;" > ~/user-config.jam
 - >
-  echo -e "using python : 3.6 : $VIRTUAL_ENV/bin/python : $VIRTUAL_ENV/include : $VIRTUAL_ENV/lib ;" > ~/user-config.jam
+  echo "using python : 3.6 ;" > ~/user-config.jam
 - cat ~/user-config.jam
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip

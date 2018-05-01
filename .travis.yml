@@ -9,4 +9,5 @@ before_install:
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python
-- python setup.py build
+- bjam
+- ls

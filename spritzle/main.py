@@ -62,7 +62,7 @@ app = aiohttp.web.Application(
                  spritzle.resource.auth.auth_middleware])
 
 
-def setup_app(app, core):
+def setup_app(app, core, settings=None):
     config = core.config
     if not config['auth_secret']:
         config['auth_secret'] = secrets.token_hex()
@@ -71,7 +71,7 @@ def setup_app(app, core):
     app['spritzle.config'] = config
 
     async def on_startup(app):
-        await app['spritzle.core'].start()
+        await app['spritzle.core'].start(settings=settings)
 
     async def on_shutdown(app):
         await app['spritzle.core'].stop()

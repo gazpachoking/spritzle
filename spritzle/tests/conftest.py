@@ -2,12 +2,11 @@ import tempfile
 from pathlib import Path
 import shutil
 
-from aiohttp import web
 import pytest
 
 from spritzle.core import Core
 from spritzle.config import Config
-from spritzle.main import setup_app
+from spritzle.main import setup_app, app
 
 pytest_plugins = 'aiohttp.pytest_plugin'
 
@@ -23,8 +22,16 @@ def core():
 
 @pytest.fixture
 def cli(loop, core, aiohttp_client):
-    app = web.Application()
-    setup_app(app, core)
+    settings = {
+        'enable_upnp': False,
+        'enable_natpmp': False,
+        'enable_lsd': False,
+        'enable_dht': False,
+        'anonymous_mode': True,
+        'alert_mask': 0,
+        'stop_tracker_timeout': 0,
+    }
+    setup_app(app, core, settings=settings)
     return loop.run_until_complete(
         aiohttp_client(app, server_kwargs={'host': 'localhost', 'port': 8080})
     )

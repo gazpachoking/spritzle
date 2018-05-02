@@ -147,33 +147,20 @@ async def test_add_torrent_bad_args(cli):
     assert response.status == 400
 
 
-async def test_add_torrent_url(cli):
-    post_data = create_torrent_post_data(url='http://localhost/test.torrent')
-    data = Path(torrent_dir, 'random_one_file.torrent').read_bytes()
+async def test_add_torrent_url(app, aiohttp_client):
+    async def get_test_torrent(request):
+        return aiohttp.web.FileResponse(
+            Path(torrent_dir, 'random_one_file.torrent'))
 
-    class AsyncContextManager:
-        async def __aenter__(self):
-            return self
+    app.router.add_route('GET', '/test.torrent', get_test_torrent)
+    cli = await aiohttp_client(app)
+    server = cli.server
+    torrent_address = f'http://{server.host}:{server.port}/test.torrent'
 
-        async def __aexit__(self, exc_type, exc, tb):
-            return
+    post_data = create_torrent_post_data(url=torrent_address)
 
-        async def read(self):
-            return data
-
-    class ClientSession:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
-            return
-
-        def get(self, url):
-            return AsyncContextManager()
-
-    with patch('aiohttp.ClientSession', new=ClientSession):
-        response = await cli.post('/torrent', data=post_data)
-        assert response.status == 201
+    response = await cli.post('/torrent', data=post_data)
+    assert response.status == 201
 
 
 async def test_remove_torrent(cli):

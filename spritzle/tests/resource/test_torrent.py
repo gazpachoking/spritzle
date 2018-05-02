@@ -23,15 +23,11 @@
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-import pytest
 
 import libtorrent as lt
 import aiohttp.web
-from aiohttp.web import FileField
 
 from spritzle.resource import torrent
-from spritzle.tests.common import run_until_complete, json_response
-import spritzle.tests.common
 
 torrent_dir = Path(Path(__file__).resolve().parent, 'torrents')
 
@@ -65,7 +61,6 @@ def create_torrent_post_data(filename=None, url=None,
     return post
 
 
-@run_until_complete
 async def test_get_torrent(cli):
     await test_post_torrent(cli)
 

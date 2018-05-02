@@ -62,11 +62,12 @@ app = aiohttp.web.Application(
                  spritzle.resource.auth.auth_middleware])
 
 
-def setup_app(app, core, settings=None):
+def setup_app(app, core, log, settings=None):
     config = core.config
     if not config['auth_secret']:
         config['auth_secret'] = secrets.token_hex()
 
+    app['spritzle.log'] = log
     app['spritzle.core'] = core
     app['spritzle.config'] = config
 
@@ -98,7 +99,6 @@ def main():
 
     log = setup_logger(name='spritzle', level=args.log_level)
     log.info(f'spritzled starting.. args: {args}')
-    app['spritzle.log'] = log
 
     loop = asyncio.get_event_loop()
     loop.set_debug(args.debug)
@@ -114,5 +114,5 @@ def main():
         log.error('Exiting..')
         sys.exit(0)
 
-    setup_app(app, Core(config))
+    setup_app(app, Core(config), log)
     aiohttp.web.run_app(app)

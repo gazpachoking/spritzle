@@ -114,14 +114,5 @@ def main():
         log.error('Exiting..')
         sys.exit(0)
 
-    if not config['auth_secret']:
-        config['auth_secret'] = secrets.token_hex()
-
-    app['spritzle.config'] = config
-    app['spritzle.core'] = Core(app['spritzle.config'])
-
-    async def on_startup(app):
-        await app['spritzle.core'].start()
-
     setup_app(app, Core(config))
     aiohttp.web.run_app(app)

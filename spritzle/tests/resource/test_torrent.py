@@ -154,8 +154,7 @@ async def test_add_torrent_url(app, aiohttp_client):
 
     app.router.add_route('GET', '/test.torrent', get_test_torrent)
     cli = await aiohttp_client(app)
-    server = cli.server
-    torrent_address = f'http://{server.host}:{server.port}/test.torrent'
+    torrent_address = cli.make_url('/test.torrent')
 
     post_data = create_torrent_post_data(url=torrent_address)
 

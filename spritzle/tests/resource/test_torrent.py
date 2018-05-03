@@ -22,7 +22,7 @@
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import libtorrent as lt
 import aiohttp.web
@@ -32,32 +32,24 @@ from spritzle.resource import torrent
 torrent_dir = Path(Path(__file__).resolve().parent, 'torrents')
 
 
-def create_torrent_post_data(filename=None, url=None,
-                             info_hash=None, args=None, tags=None):
-    post = aiohttp.FormData()
+def create_torrent_post_data(filename=None, tags=None, args=None, **kwargs):
+    post = {}
     a = {
         'ti': None,
         'flags': lt.torrent_flags.paused,
     }
     if args:
         a.update(args)
+    post['args'] = json.dumps(a)
 
-    post.add_field('args', json.dumps(a))
+    if tags:
+        post['tags'] = json.dumps(tags)
 
     if filename:
         filepath = Path(torrent_dir, filename)
-        post.add_field('file', filepath.open(mode='rb'), filename=filename,
-                       content_type='text/plain')
+        post['file'] = filepath.open(mode='rb')
 
-    if url:
-        post.add_field('url', url)
-
-    if info_hash:
-        post.add_field('info_hash', info_hash)
-
-    if tags:
-        post.add_field('tags', json.dumps(tags))
-
+    post.update(kwargs)
     return post
 
 

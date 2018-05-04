@@ -20,6 +20,7 @@
 #   Boston, MA    02110-1301, USA.
 #
 
+from base64 import b64encode
 import json
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -32,25 +33,14 @@ from spritzle.resource import torrent
 torrent_dir = Path(Path(__file__).resolve().parent, 'torrents')
 
 
-def create_torrent_post_data(filename=None, tags=None, args=None, **kwargs):
-    post = {}
-    a = {
-        'ti': None,
-        'flags': lt.torrent_flags.paused,
-    }
-    if args:
-        a.update(args)
-    post['args'] = json.dumps(a)
-
-    if tags:
-        post['tags'] = json.dumps(tags)
-
+def create_torrent_post_data(filename=None, **kwargs):
+    data = {'flags': lt.torrent_flags.paused}
+    data.update(kwargs)
     if filename:
         filepath = Path(torrent_dir, filename)
-        post['file'] = filepath.open(mode='rb')
+        data['file'] = b64encode(filepath.open(mode='rb').read()).decode('ascii')
 
-    post.update(kwargs)
-    return post
+    return data
 
 
 async def test_get_torrent(cli):
@@ -76,7 +66,7 @@ async def test_get_torrent(cli):
 async def test_post_torrent(cli):
     post_data = create_torrent_post_data(filename='random_one_file.torrent',
                                         tags=['foo'])
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     body = await response.json()
     assert 'info_hash' in body
     info_hash = body['info_hash']
@@ -96,11 +86,35 @@ async def test_post_torrent_info_hash(cli):
     post_data = create_torrent_post_data(
         info_hash='44a040be6d74d8d290cd20128788864cbf770719')
 
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     body = await response.json()
     assert 'info_hash' in body
     info_hash = body['info_hash']
     assert info_hash == '44a040be6d74d8d290cd20128788864cbf770719'
+
+
+async def test_add_torrent_form_encoding(core, cli):
+    filepath = Path(torrent_dir, 'random_one_file.torrent')
+    post_data = [('file', filepath.open(mode='rb')),
+              ('tags', 'tag1'),
+              ('tags', 'tag2')]
+
+    response = await cli.post('/torrent', data=post_data)
+    body = await response.json()
+    assert 'info_hash' in body
+    info_hash = body['info_hash']
+
+    assert response.headers['LOCATION'] == \
+        f'http://localhost:8080/torrent/{info_hash}'
+    assert response.status == 201
+
+    assert info_hash == '44a040be6d74d8d290cd20128788864cbf770719'
+
+    response = await cli.get('/torrent')
+    tlist = await response.json()
+    assert tlist == ['44a040be6d74d8d290cd20128788864cbf770719']
+
+    assert core.torrent_data[info_hash]['spritzle.tags'] == ['tag1', 'tag2']
 
 
 async def test_add_torrent_lt_runtime_error(cli, core):
@@ -109,14 +123,14 @@ async def test_add_torrent_lt_runtime_error(cli, core):
     add_torrent = MagicMock()
     add_torrent.side_effect = RuntimeError()
     core.session.add_torrent = add_torrent
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     assert response.status == 500
 
 
 async def test_add_torrent_bad_file(cli):
     post_data = create_torrent_post_data(filename='empty.torrent')
 
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     assert response.status == 400
 
 
@@ -125,17 +139,17 @@ async def test_add_torrent_bad_number_args(cli):
         url='http://testing/test.torrent',
         info_hash='a0'*20)
 
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     assert response.status == 400
 
 
 async def test_add_torrent_bad_args(cli):
     post_data = create_torrent_post_data(
         filename='random_one_file.torrent',
-        args={'bad_key': True},
+        bad_key=True,
     )
 
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     assert response.status == 400
 
 
@@ -146,11 +160,11 @@ async def test_add_torrent_url(app, aiohttp_client):
 
     app.router.add_route('GET', '/test.torrent', get_test_torrent)
     cli = await aiohttp_client(app)
-    torrent_address = cli.make_url('/test.torrent')
+    torrent_address = str(cli.make_url('/test.torrent'))
 
     post_data = create_torrent_post_data(url=torrent_address)
 
-    response = await cli.post('/torrent', data=post_data)
+    response = await cli.post('/torrent', json=post_data)
     assert response.status == 201
 
 

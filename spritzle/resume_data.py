@@ -54,15 +54,20 @@ class ResumeData(object):
         self.save_loop_task = asyncio.ensure_future(self.save_loop_coro())
 
     async def stop(self):
+        log.debug("Resume data manager stopping...")
         if self.save_loop_task:
             self.save_loop_task.cancel()
             await self.save_loop_task
+        log.debug("Resume data manager stopped.")
 
     async def save_loop_coro(self):
-        while True:
-            await asyncio.sleep(self.core.config['resume_data_save_frequency'])
-            # Shield from cancellation while saving resume data
-            await self.save()
+        try:
+            while True:
+                await asyncio.sleep(self.core.config['resume_data_save_frequency'])
+                # Shield from cancellation while saving resume data
+                await self.save()
+        except asyncio.CancelledError:
+            pass
 
     async def on_save_resume_data_alert(self, alert):
         info_hash = str(alert.handle.info_hash())

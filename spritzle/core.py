@@ -101,6 +101,7 @@ class Core(object):
     async def stop(self):
         log.debug('Core stopping..')
         await self.save_session_state()
+        self.session.pause()
         await self.resume_data.stop()
         await self.alert.stop()
         del self.session

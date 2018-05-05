@@ -20,20 +20,32 @@
 #   Boston, MA    02110-1301, USA.
 #
 
-from unittest.mock import MagicMock
-import pytest
 
-from spritzle.tests.common import run_until_complete
-from spritzle.resource import config
+async def test_get_config(core, cli):
+    config_data = {'key1': 'value1'}
+    core.config.data = config_data
+    response = await cli.get('/config')
+    data = await response.json()
 
-
-@run_until_complete
-async def test_get_config():
-    with pytest.raises(NotImplementedError):
-        await config.get_config(MagicMock())
+    assert data == config_data
 
 
-@run_until_complete
-async def test_put_config():
-    with pytest.raises(NotImplementedError):
-        await config.put_config(MagicMock())
+async def test_put_config(core, cli):
+    orig_config = {"key1": "value1"}
+    new_config = {"key2": "value2"}
+    core.config.data = orig_config
+
+    response = await cli.put('/config', json=new_config)
+    assert response.status == 200
+    assert core.config.data == new_config
+
+
+async def test_patch_config(core, cli):
+    orig_config = {"key1": "value1"}
+    patch_config = {"key2": "value2"}
+    new_config = {**orig_config, **patch_config}
+    core.config.data = orig_config
+
+    response = await cli.patch('/config', json=patch_config)
+    assert response.status == 200
+    assert core.config.data == new_config

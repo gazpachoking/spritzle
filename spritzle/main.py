@@ -33,7 +33,6 @@ import spritzle.resource.auth
 import spritzle.resource.config
 import spritzle.resource.core
 import spritzle.resource.session
-import spritzle.resource.settings
 import spritzle.resource.torrent
 
 from spritzle.core import Core
@@ -63,12 +62,28 @@ app = aiohttp.web.Application(
                  spritzle.resource.auth.auth_middleware])
 
 
-def setup_routes():
+def setup_app(app, core, log, settings=None):
+    config = core.config
+    if not config['auth_secret']:
+        config['auth_secret'] = secrets.token_hex()
+
+    app['spritzle.log'] = log
+    app['spritzle.core'] = core
+    app['spritzle.config'] = config
+
+    async def on_startup(app):
+        await app['spritzle.core'].start(settings=settings)
+
+    async def on_shutdown(app):
+        await app['spritzle.core'].stop()
+
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+
     app.router.add_routes(spritzle.resource.auth.routes)
     app.router.add_routes(spritzle.resource.config.routes)
     app.router.add_routes(spritzle.resource.core.routes)
     app.router.add_routes(spritzle.resource.session.routes)
-    app.router.add_routes(spritzle.resource.settings.routes)
     app.router.add_routes(spritzle.resource.torrent.routes)
 
 
@@ -84,7 +99,6 @@ def main():
 
     log = setup_logger(name='spritzle', level=args.log_level)
     log.info(f'spritzled starting.. args: {args}')
-    app['spritzle.log'] = log
 
     loop = asyncio.get_event_loop()
     loop.set_debug(args.debug)
@@ -100,19 +114,5 @@ def main():
         log.error('Exiting..')
         sys.exit(0)
 
-    if not config['auth_secret']:
-        config['auth_secret'] = secrets.token_hex()
-
-    app['spritzle.config'] = config
-    app['spritzle.core'] = Core(app['spritzle.config'])
-
-    async def on_startup(app):
-        await app['spritzle.core'].start()
-
-    async def on_shutdown(app):
-        await app['spritzle.core'].stop()
-
-    app.on_startup.append(on_startup)
-    app.on_shutdown.append(on_shutdown)
-    setup_routes()
+    setup_app(app, Core(config), log)
     aiohttp.web.run_app(app)

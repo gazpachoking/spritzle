@@ -20,7 +20,7 @@ before_install:
 #- >
 #  echo -e "using python : 3.6 : $VIRTUAL_ENV/bin/python : $VIRTUAL_ENV/include : $VIRTUAL_ENV/lib ;" > ~/user-config.jam
 - >
-  echo -e "using python : 3.6 ;\nusing gcc : : ccache g++-5 : <cxxflags>-std=c++11 ;" > ~/user-config.jam
+  echo -e "using python : 3.4 ;\nusing gcc : : ccache g++-5 : <cxxflags>-std=c++11 ;" > ~/user-config.jam
 - cat ~/user-config.jam
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip

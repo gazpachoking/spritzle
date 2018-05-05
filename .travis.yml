@@ -10,7 +10,7 @@ addons:
     - libboost1.55-tools-dev
     - g++-5
 before_install:
-- find / -name libboost_python*.so
+#- find / -name libboost_python*.so
 - which python
 - printenv
 - ls $VIRTUAL_ENV
@@ -24,6 +24,6 @@ before_install:
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python
-- python setup.py build --bjam
-#- bjam crypto=openssl
+#- python setup.py build --bjam
+- bjam crypto=openssl
 - ls -R

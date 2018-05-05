@@ -36,13 +36,13 @@ class ResumeData(object):
         self.core = core
         self.loop = asyncio.get_event_loop()
         self.save_loop_task = None
-        self.run = False
 
         # Store state of outstanding save resume data alerts
         self.resume_data_futures = {}
 
     async def start(self):
         log.debug('Resume data manager starting...')
+        self.load()
         self.core.alert.register_handler(
             'save_resume_data_alert',
             self.on_save_resume_data_alert
@@ -51,16 +51,17 @@ class ResumeData(object):
             'save_resume_data_failed_alert',
             self.on_save_resume_data_failed_alert
         )
-        self.save_loop_task = asyncio.ensure_future(self.save_loop_coro())
+        self.save_loop_task = asyncio.ensure_future(self.save_loop())
 
     async def stop(self):
         log.debug("Resume data manager stopping...")
         if self.save_loop_task:
             self.save_loop_task.cancel()
             await self.save_loop_task
+        await self.save()
         log.debug("Resume data manager stopped.")
 
-    async def save_loop_coro(self):
+    async def save_loop(self):
         save_fut = None
         try:
             while True:

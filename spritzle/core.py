@@ -95,7 +95,6 @@ class Core(object):
         self.session = lt.session(settings)
         await self.load_session_state()
         await self.alert.start(self.session)
-        await self.resume_data.load()
         await self.resume_data.start()
         log.debug('Core started.')
 
@@ -103,7 +102,6 @@ class Core(object):
         log.debug('Core stopping..')
         await self.save_session_state()
         await self.resume_data.stop()
-        await self.resume_data.save()
         await self.alert.stop()
         del self.session
         self.session = None

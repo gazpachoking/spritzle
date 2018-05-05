@@ -9,6 +9,7 @@ addons:
     - libboost1.55-all-dev
     - libboost1.55-tools-dev
     - g++-5
+    - python3-dev
 before_install:
 #- find / -name libboost_python*.so
 - which python

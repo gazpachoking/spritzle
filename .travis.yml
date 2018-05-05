@@ -22,7 +22,7 @@ before_install:
 - >
   echo -e "using python : 3.4 ;\nusing gcc : : ccache g++-5 : <cxxflags>-std=c++11 ;" > ~/user-config.jam
 - cat ~/user-config.jam
-- ln -s /usr/lib/x86_64-linux-gnu/libboost_python3.so /usr/lib/x86_64-linux-gnu/libboost_python-py34.so
+- ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py34.so /usr/lib/x86_64-linux-gnu/libboost_python3.so
 - wget https://github.com/arvidn/libtorrent/archive/master.zip
 - unzip master.zip
 - cd libtorrent-master/bindings/python

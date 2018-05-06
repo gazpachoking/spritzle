@@ -26,6 +26,7 @@ from pathlib import Path
 import shutil
 
 import libtorrent as lt
+import pytest
 
 resume_data_path = Path(__file__).resolve().parent / 'resource' / 'resume_data'
 torrent_dir = Path(__file__).resolve().parent / 'resource' / 'torrents'
@@ -50,20 +51,17 @@ async def test_save(core):
     assert len(list(core.state_dir.iterdir())) == 1
 
 
-async def test_resume_data_save_loop(core):
+@pytest.mark.parametrize('frequency', [0.1, 0.2])
+async def test_resume_data_save_loop(core, frequency):
     """
     Verifies save resume data is called, and called as often as specified in config.
     """
-    core.config['resume_data_save_frequency'] = 0.1
+    core_run_time = 0.61
+    expected_runs = int(core_run_time / frequency)
+    core.config['resume_data_save_frequency'] = frequency
     with asynctest.patch('spritzle.resume_data.ResumeData.save') as mock_save:
         await core.start()
-        await asyncio.sleep(0.41)
-        assert mock_save.call_count == 4
-        await core.stop()
-
-    core.config['resume_data_save_frequency'] = 0.2
-    with asynctest.patch('spritzle.resume_data.ResumeData.save') as mock_save:
-        await core.start()
-        await asyncio.sleep(0.41)
-        assert mock_save.call_count == 2
+        await asyncio.sleep(core_run_time)
+        # Allow a bit of slop so the test isn't so fragile
+        assert expected_runs - 1 <= mock_save.call_count <= expected_runs + 1
         await core.stop()

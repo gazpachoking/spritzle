@@ -42,7 +42,7 @@ class ResumeData(object):
 
     async def start(self):
         log.debug('Resume data manager starting...')
-        self.load()
+        await self.load()
         self.core.alert.register_handler(
             'save_resume_data_alert',
             self.on_save_resume_data_alert

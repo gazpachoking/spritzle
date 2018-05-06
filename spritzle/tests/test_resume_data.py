@@ -47,8 +47,13 @@ async def test_save(core):
     with open(torrent_dir / 'random_one_file.torrent', mode='rb') as f:
         torrent_info = lt.torrent_info(lt.bdecode(f.read()))
     core.session.add_torrent({'ti': torrent_info})
+    # We need time for the torrent added alert to come in to initiate save
+    await asyncio.sleep(0.5)
     await core.stop()
-    assert len(list(core.state_dir.iterdir())) == 1
+    with open(core.state_dir / 'tmprandomfile.resume', mode='rb') as f:
+        data = lt.bdecode(f.read())
+        assert b'paused' in data
+        assert data[b'info'][b'length'] == 4194304
 
 
 @pytest.mark.parametrize('frequency', [0.1, 0.2])

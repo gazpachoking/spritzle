@@ -78,7 +78,7 @@ class ResumeData(object):
         info_hash = str(alert.handle.info_hash())
         p = Path(self.core.state_dir, alert.torrent_name + '.resume')
         r = lt.write_resume_data(alert.params)
-        r.update(self.core.torrent_data[info_hash])
+        r.update(self.core.torrent_data.get(info_hash, {}))
         p.write_bytes(lt.bencode(r))
         if info_hash in self.resume_data_futures:
             self.resume_data_futures.pop(info_hash).set_result(True)

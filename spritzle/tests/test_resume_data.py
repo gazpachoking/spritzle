@@ -22,18 +22,16 @@
 
 import asyncio
 import asynctest
-from pathlib import Path
 import shutil
 
 import libtorrent as lt
 import pytest
 
-resume_data_path = Path(__file__).resolve().parent / 'resource' / 'resume_data'
-torrent_dir = Path(__file__).resolve().parent / 'resource' / 'torrents'
+from spritzle.tests import resume_data_dir, torrent_dir
 
 
 async def test_load(core):
-    shutil.copy(resume_data_path / 'tmprandomfile.resume', core.state_dir)
+    shutil.copy(resume_data_dir / 'tmprandomfile.resume', core.state_dir)
     await core.start()
     torrents = core.session.get_torrents()
     assert len(torrents) == 1

@@ -43,7 +43,7 @@ async def test_load(core):
 async def test_save(core):
     await core.start()
     assert len(list(core.state_dir.iterdir())) == 0
-    with (torrent_dir / 'random_one_file.torrent').open(mode='rb') as f:
+    with open(torrent_dir / 'random_one_file.torrent', mode='rb') as f:
         torrent_info = lt.torrent_info(lt.bdecode(f.read()))
     core.session.add_torrent({'ti': torrent_info})
     await core.stop()

@@ -57,8 +57,8 @@ async def test_resume_data_save_loop(core):
     core.config['resume_data_save_frequency'] = 0.1
     with asynctest.patch('spritzle.resume_data.ResumeData.save') as mock_save:
         await core.start()
-        await asyncio.sleep(0.51)
-        assert mock_save.call_count == 5
+        await asyncio.sleep(0.41)
+        assert mock_save.call_count == 4
         await core.stop()
 
     core.config['resume_data_save_frequency'] = 0.2

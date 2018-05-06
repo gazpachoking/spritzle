@@ -31,6 +31,8 @@ def core(loop):
     }
     with patch.object(core, 'start', partial(core.start, settings=settings)):
         yield core
+    if core.session is not None:
+        loop.run_until_complete(core.stop())
     shutil.rmtree(str(state_dir))
 
 

@@ -58,7 +58,7 @@ class ResumeData(object):
         if self.save_loop_task:
             self.save_loop_task.cancel()
             await self.save_loop_task
-        await self.save()
+        await self.save_all()
         log.debug("Resume data manager stopped.")
 
     async def save_loop(self):
@@ -68,7 +68,7 @@ class ResumeData(object):
                 await asyncio.sleep(
                     self.core.config['resume_data_save_frequency'])
                 # Don't interrupt save process when loop is cancelled
-                save_fut = asyncio.ensure_future(self.save())
+                save_fut = asyncio.ensure_future(self.save_all())
                 await asyncio.shield(save_fut)
         except asyncio.CancelledError:
             if save_fut and not save_fut.done():
@@ -78,7 +78,7 @@ class ResumeData(object):
         info_hash = str(alert.handle.info_hash())
         p = Path(self.core.state_dir, alert.torrent_name + '.resume')
         r = lt.write_resume_data(alert.params)
-        r.update(self.core.torrent_data.get(info_hash, {}))
+        r.update(self.core.torrent_data[info_hash])
         p.write_bytes(lt.bencode(r))
         if info_hash in self.resume_data_futures:
             self.resume_data_futures.pop(info_hash).set_result(True)
@@ -93,17 +93,23 @@ class ResumeData(object):
             # we should raise an exception.
             self.resume_data_futures.pop(info_hash).set_result(True)
 
-    async def save(self):
+    def save_torrent(self, torrent_handle):
+        info_hash = str(torrent_handle.info_hash())
+        if info_hash not in self.resume_data_futures:
+            self.resume_data_futures[info_hash] = asyncio.Future()
+            torrent_handle.save_resume_data(
+                flags=(
+                        int(lt.save_resume_flags_t.flush_disk_cache) |
+                        int(lt.save_resume_flags_t.save_info_dict)
+                ),
+            )
+        return self.resume_data_futures[info_hash]
+
+    async def save_all(self):
         log.debug('Saving resume data for all torrents')
         for torrent in self.core.session.get_torrents():
             if torrent.need_save_resume_data():
-                self.resume_data_futures[str(torrent.info_hash())] = asyncio.Future()
-                torrent.save_resume_data(
-                    flags=(
-                        int(lt.save_resume_flags_t.flush_disk_cache) |
-                        int(lt.save_resume_flags_t.save_info_dict)
-                    ),
-                )
+                self.save_torrent(torrent)
         await asyncio.gather(*self.resume_data_futures.values())
 
     async def load(self):

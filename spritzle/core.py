@@ -25,7 +25,6 @@ import pkg_resources
 from pathlib import Path
 import logging
 import functools
-import binascii
 
 import libtorrent as lt
 
@@ -63,10 +62,6 @@ class Core(object):
         self.alert.register_handler(
             'status_notification',
             self.on_status_notification_alert
-        )
-        self.alert.register_handler(
-            'add_torrent_alert',
-            self.on_add_torrent_alert
         )
 
     async def start(self, settings=None):
@@ -145,14 +140,6 @@ class Core(object):
                 alert.what(),
                 info_hash,
                 ','.join(self.get_torrent_tags(info_hash)))
-
-    async def on_add_torrent_alert(self, alert):
-        try:
-            alert.handle.save_resume_data()
-        except RuntimeError as e:
-            # An invalid handle can occur here if a torrent is added and
-            # removed in quick succession.
-            log.error(e)
 
     async def on_state_changed_alert(self, alert):
         if alert.handle.need_save_resume_data():

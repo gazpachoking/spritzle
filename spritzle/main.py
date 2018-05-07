@@ -69,10 +69,9 @@ async def error_middleware(request, handler):
         tb = ''.join(traceback.format_exception(*sys.exc_info()))
         response = aiohttp.web.Response(status=500, reason='Spritzle Bug',
                                         text=tb)
-    if 200 <= response.status < 300:
+    if response.status < 400:
         return response
     return aiohttp.web.json_response({
-        'error': True,
         'status': response.status,
         'reason': response.reason,
         'message': response.text

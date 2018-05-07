@@ -57,14 +57,15 @@ async def test_expected_error(cli, error_params):
     assert response.status == error_params['status']
     assert response.reason == error_params['reason']
     body = await response.json()
-    assert body == {'error': True, **error_params}
+    assert body == error_params
 
 
 async def test_unexpected_error(cli):
     response = await cli.get('/unexpected_error')
     assert response.content_type == 'application/json'
     assert response.status == 500
-    assert 'error' in await response.json()
+    body = await response.json()
+    assert body['status'] == 500
 
 
 async def test_no_error(cli):

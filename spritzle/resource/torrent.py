@@ -20,9 +20,10 @@
 #   Boston, MA    02110-1301, USA.
 
 import asyncio
-import functools
+from base64 import b64decode
 import binascii
-import json
+import functools
+from json import JSONDecodeError
 import logging
 
 import aiohttp
@@ -96,10 +97,16 @@ async def post_torrent(request):
         'save_path': config.get('add_torrent_params.save_path', '')
     }
 
-    post = await request.post()
+    try:
+        post = await request.json()
+    except JSONDecodeError as ex:
+        raise web.HTTPBadRequest(
+            reason='Invalid JSON',
+            text=ex.msg
+        )
 
     if 'args' in post:
-        args = json.loads(post['args'])
+        args = post['args']
         for key, value in args.items():
             if key in ('ti', 'info_hash'):
                 continue
@@ -120,7 +127,8 @@ async def post_torrent(request):
                 reason=f'Not a valid torrent file: {e}')
 
     if 'file' in post:
-        generate_torrent_info(post['file'].file.read())
+        data = b64decode(post['file'])
+        generate_torrent_info(data)
     # We do not use libtorrent's ability to download torrents as it will
     # probably be removed in future versions and cannot provide the
     # info-hash when we need it.
@@ -141,7 +149,7 @@ async def post_torrent(request):
     if info_hash not in core.torrent_data:
         core.torrent_data[info_hash] = {}
 
-    tags = json.loads(post['tags']) if 'tags' in post else []
+    tags = post.get('tags', [])
     core.torrent_data[info_hash]['spritzle.tags'] = tags
 
     try:
@@ -160,7 +168,7 @@ async def post_torrent(request):
         {'info_hash': info_hash},
         status=201,
         headers={'Location': f'{request.scheme}://{request.host}/torrent/{info_hash}'}
-        )
+    )
 
 
 @routes.delete('/torrent')

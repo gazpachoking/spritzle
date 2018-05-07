@@ -105,13 +105,6 @@ async def post_torrent(request):
             text=ex.msg
         )
 
-    if 'args' in post:
-        args = post['args']
-        for key, value in args.items():
-            if key in ('ti', 'info_hash'):
-                continue
-            atp[key] = value
-
     # We require that only one of file, url or info_hash is set
     if len(set(post.keys()).intersection(
             ('file', 'url', 'info_hash'))) != 1:
@@ -127,7 +120,7 @@ async def post_torrent(request):
                 reason=f'Not a valid torrent file: {e}')
 
     if 'file' in post:
-        data = b64decode(post['file'])
+        data = b64decode(post.pop('file'))
         generate_torrent_info(data)
     # We do not use libtorrent's ability to download torrents as it will
     # probably be removed in future versions and cannot provide the
@@ -135,11 +128,11 @@ async def post_torrent(request):
     # See: https://github.com/arvidn/libtorrent/issues/481
     elif 'url' in post:
         async with aiohttp.ClientSession() as client:
-            async with client.get(post['url']) as resp:
+            async with client.get(post.pop('url')) as resp:
                 generate_torrent_info(await resp.read())
 
     elif 'info_hash' in post:
-        atp['info_hash'] = binascii.unhexlify(post['info_hash'])
+        atp['info_hash'] = binascii.unhexlify(post.pop('info_hash'))
 
     if 'ti' in atp:
         info_hash = str(atp['ti'].info_hash())
@@ -149,8 +142,11 @@ async def post_torrent(request):
     if info_hash not in core.torrent_data:
         core.torrent_data[info_hash] = {}
 
-    tags = post.get('tags', [])
+    tags = post.pop('tags', [])
     core.torrent_data[info_hash]['spritzle.tags'] = tags
+
+    # We have already popped all spritzle specific options from post, merge it in
+    atp.update(post)
 
     try:
         torrent_handle = await asyncio.get_event_loop().run_in_executor(

@@ -21,18 +21,12 @@
 #
 
 
-# def test_save_state():
-#     with tempfile.TemporaryDirectory() as tmpdir:
-#         path_mock = MagicMock(return_value=os.path.join(tmpdir, "state"))
-#         patch('os.path.expanduser', new=path_mock).start()
-#
-#         core = spritzle.core.Core()
-#         assert not os.path.exists(core.get_lt_state_file_path())
-#
-#         core.init(os.path.join(tmpdir, "config"))
-#         core.save_state()
-#
-#         assert os.path.exists(core.get_lt_state_file_path())
+async def test_save_session_state(core):
+    state_file = core.state_dir / 'session.state'
+    await core.start()
+    assert not state_file.is_file()
+    await core.save_session_state()
+    assert state_file.is_file()
 
 
 async def test_torrent_data(cli, core):

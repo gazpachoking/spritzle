@@ -4,6 +4,9 @@ Interface
 The main interface to spritzle is REST based. This allows access from almost
 any language or environment.
 
+**_Note:_** All examples shown are using [httpie](https://httpie.org), a command line HTTP client, to send requests to spritzle.
+This is similar to curl, but allows for much easier interface with JSON REST apis.
+
 Session
 -------
 

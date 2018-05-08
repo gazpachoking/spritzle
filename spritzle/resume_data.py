@@ -112,6 +112,11 @@ class ResumeData(object):
                 self.save_torrent(torrent)
         await asyncio.gather(*self.resume_data_futures.values())
 
+    async def delete(self, torrent_name):
+        p = Path(self.core.state_dir, torrent_name + '.resume')
+        if p.is_file():
+            p.unlink()
+
     async def load(self):
         log.info(f'Loading resume data from {self.core.state_dir}')
         for f in self.core.state_dir.iterdir():

@@ -49,6 +49,15 @@ async def test_new_torrent_saved(cli, core):
         assert data[b'info'][b'length'] == 4194304
 
 
+async def test_resume_data_deleted(cli, core):
+    resume_file = core.state_dir / 'tmprandomfile.resume'
+    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
+    await cli.post('/torrent', data={'url': torrent_address})
+    assert resume_file.is_file()
+    await cli.delete('/torrent/44a040be6d74d8d290cd20128788864cbf770719')
+    assert not resume_file.is_file()
+
+
 @pytest.mark.parametrize('frequency', [0.1, 0.2])
 async def test_resume_data_save_loop(core, frequency):
     """

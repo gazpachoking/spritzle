@@ -138,14 +138,8 @@ async def test_add_torrent_bad_args(cli):
     assert response.status == 400
 
 
-async def test_add_torrent_url(app, aiohttp_client):
-    async def get_test_torrent(request):
-        return aiohttp.web.FileResponse(
-            Path(torrent_dir, 'random_one_file.torrent'))
-
-    app.router.add_route('GET', '/test.torrent', get_test_torrent)
-    cli = await aiohttp_client(app)
-    torrent_address = cli.make_url('/test.torrent')
+async def test_add_torrent_url(cli):
+    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
 
     post_data = create_torrent_post_data(url=torrent_address)
 

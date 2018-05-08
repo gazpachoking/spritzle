@@ -86,7 +86,6 @@ keys: **file**, **url** or **info_hash**.
 
 All of the methods can use the **args** key to set any options, see
 http://libtorrent.org/reference-Session.html#add_torrent_params for reference.
-The **args** value should be a JSON encoded dictionary.
 
 Upon success, you will receive a 201 response and a dictionary with the info_hash in the body.  The LOCATION
 header will also be set in the response for the new torrent resource.
@@ -98,7 +97,7 @@ Adding a torrent by uploading a torrent file requires the use of a multipart/for
 **Example**
 
 ```shell
-$ curl -i -X POST -F "file=@random_one_file.torrent" -F 'args={"save_path": "/tmp"}' http://localhost:8080/torrent
+$ (echo -n '{"file": "'; base64 random_one_file.torrent; echo '", {"save_path": "/tmp"}}') | curl -i -X POST -d @- http://localhost:8080/torrent
 
 HTTP/1.1 100 Continue
 
@@ -119,7 +118,7 @@ Adding a torrent by url is done by setting the **url** key.
 **Example**
 
 ```shell
-$ curl -i -X POST -d "url=https://www.archlinux.org/releng/releases/2016.02.01/torrent/" -d 'args={"save_path": "/tmp"}' http://localhost:8080/torrent
+$ curl -i -X POST -d '{"url": "https://www.archlinux.org/releng/releases/2016.02.01/torrent/", "args": {"save_path": "/tmp"}}' http://localhost:8080/torrent
 
 HTTP/1.1 201 Created
 LOCATION: http://localhost:8080/torrent/88066b90278f2de655ee2dd44e784c340b54e45c
@@ -138,7 +137,7 @@ Adding a torrent by info-hash is done by setting the **info_hash** key.
 **Example**
 
 ```shell
-$ curl -i -X POST -d "info_hash=88066b90278f2de655ee2dd44e784c340b54e45c" -d 'args={"save_path": "/tmp"}' http://localhost:8080/torrent
+$ curl -i -X POST -d '{"info_hash": "88066b90278f2de655ee2dd44e784c340b54e45c", "args": {"save_path": "/tmp"}}' http://localhost:8080/torrent
 
 HTTP/1.1 201 Created
 LOCATION: http://localhost:8080/torrent/88066b90278f2de655ee2dd44e784c340b54e45c

@@ -41,8 +41,8 @@ async def test_load(core):
 
 async def test_new_torrent_saved(cli, core):
     assert len(list(core.state_dir.iterdir())) == 0
-    with open(torrent_dir / 'random_one_file.torrent', mode='rb') as f:
-        await cli.post('/torrent', data={'file': f})
+    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
+    await cli.post('/torrent', data={'url': torrent_address})
     with open(core.state_dir / 'tmprandomfile.resume', mode='rb') as f:
         data = lt.bdecode(f.read())
         assert b'paused' in data

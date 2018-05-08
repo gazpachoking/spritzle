@@ -76,7 +76,7 @@ class ResumeData(object):
 
     async def on_save_resume_data_alert(self, alert):
         info_hash = str(alert.handle.info_hash())
-        p = Path(self.core.state_dir, alert.torrent_name + '.resume')
+        p = Path(self.core.state_dir, info_hash + '.resume')
         r = lt.write_resume_data(alert.params)
         r.update(self.core.torrent_data[info_hash])
         p.write_bytes(lt.bencode(r))
@@ -112,8 +112,8 @@ class ResumeData(object):
                 self.save_torrent(torrent)
         await asyncio.gather(*self.resume_data_futures.values())
 
-    async def delete(self, torrent_name):
-        p = Path(self.core.state_dir, torrent_name + '.resume')
+    async def delete(self, info_hash):
+        p = Path(self.core.state_dir, info_hash + '.resume')
         if p.is_file():
             p.unlink()
 

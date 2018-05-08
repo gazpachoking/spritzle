@@ -142,7 +142,7 @@ async def post_torrent(request):
     if info_hash not in core.torrent_data:
         core.torrent_data[info_hash] = {}
 
-    tags = post.pop('tags', [])
+    tags = post.pop('spritzle.tags', [])
     core.torrent_data[info_hash]['spritzle.tags'] = tags
 
     # We have already popped all spritzle specific options from post, merge it in

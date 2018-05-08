@@ -31,13 +31,16 @@ from spritzle.resource import torrent
 from spritzle.tests import torrent_dir
 
 
-def create_torrent_post_data(filename=None, **kwargs):
+def create_torrent_post_data(filename=None, tags=None, **kwargs):
     post = {'flags': lt.torrent_flags.paused}
     post.update(kwargs)
 
     if filename:
         filepath = Path(torrent_dir, filename)
         post['file'] = b64encode(filepath.open(mode='rb').read()).decode('ascii')
+
+    if tags:
+        post['spritzle.tags'] = tags
 
     return post
 

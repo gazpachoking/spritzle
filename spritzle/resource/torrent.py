@@ -187,6 +187,7 @@ async def delete_torrent(request):
     for tid in tids:
         handle = get_valid_handle(core, tid)
         await core.resume_data.delete(handle.name())
+        del core.torrent_data[tid]
         core.session.remove_torrent(handle, options)
 
     return web.Response()

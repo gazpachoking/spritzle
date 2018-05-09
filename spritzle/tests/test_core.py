@@ -20,6 +20,8 @@
 #   Boston, MA    02110-1301, USA.
 #
 
+import libtorrent as lt
+
 
 async def test_save_session_state(core):
     state_file = core.state_dir / 'session.state'
@@ -27,6 +29,9 @@ async def test_save_session_state(core):
     assert not state_file.is_file()
     await core.save_session_state()
     assert state_file.is_file()
+    with state_file.open(mode='rb') as f:
+        data = lt.bdecode(f.read())
+        assert b'settings' in data
 
 
 async def test_torrent_data(cli, core):

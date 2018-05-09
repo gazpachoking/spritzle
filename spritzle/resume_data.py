@@ -112,7 +112,7 @@ class ResumeData(object):
                 self.save_torrent(torrent)
         await asyncio.gather(*self.resume_data_futures.values())
 
-    async def delete(self, info_hash):
+    def delete(self, info_hash):
         p = Path(self.core.state_dir, info_hash + '.resume')
         if p.is_file():
             p.unlink()

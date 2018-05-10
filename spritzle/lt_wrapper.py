@@ -80,6 +80,12 @@ class Session(object):
         self._stats_future.set_result(alert)
         self._stats_future = None
 
+    def find_torrent(self, *args, **kwargs):
+        return TorrentHandle(self._session.find_torrent(*args, **kwargs))
+
+    def get_torrents(self):
+        return [TorrentHandle(th) for th in self._session.get_torrents()]
+
     def load_state(self, state, flags=0xffffffff):
         self._session.load_state(state, parse_flags(flags, lt.save_state_flags_t))
 

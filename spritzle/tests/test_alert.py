@@ -21,7 +21,9 @@
 #
 
 from unittest.mock import MagicMock
+
 import asynctest
+import pytest
 
 import spritzle.alert
 
@@ -92,3 +94,23 @@ async def test_pop_alerts(monkeypatch):
     handler_one.assert_called_with(alert_test_one)
     handler_two.assert_called_with(alert_test_two)
     handler_three.assert_called_with(alert_test_one)
+
+
+def test_handler_validation(monkeypatch):
+    async def valid_handler(alert):
+        pass
+
+    def invalid_handler(alert):
+        pass
+
+    a = spritzle.alert.Alert()
+
+    # Verify a valid handler doesn't raise anything
+    a.register_handler('torrent_paused_alert', valid_handler)
+    a.register_handler('storage_notification', valid_handler)
+
+    with pytest.raises(ValueError):
+        a.register_handler('torrent_paused_alert', invalid_handler)
+
+    with pytest.raises(ValueError):
+        a.register_handler('not an alert type', valid_handler)

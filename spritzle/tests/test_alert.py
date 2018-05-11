@@ -73,6 +73,7 @@ async def test_pop_alerts(monkeypatch):
     monkeypatch.setattr('libtorrent.alert.category_t', CategoryT)
     a = spritzle.alert.Alert()
     a.session = session
+    a.alert_types = ['AlertTestOne', 'AlertTestTwo', 'AlertTestThree']
 
     handler_one = asynctest.CoroutineMock()
     a.register_handler('AlertTestOne', handler_one)

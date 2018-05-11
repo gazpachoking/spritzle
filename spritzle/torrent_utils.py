@@ -55,17 +55,17 @@ class TorrentUtils(object):
             self.core.session.remove_torrent(torrent_handle, options)
         return future_dict[info_hash]
 
-    def _on_torrent_removed_alert(self, alert):
+    async def _on_torrent_removed_alert(self, alert):
         future = self.remove_torrent_futures.pop(str(alert.info_hash), None)
         if future:
             future.set_result(alert)
 
-    def _on_torrent_deleted_alert(self, alert):
+    async def _on_torrent_deleted_alert(self, alert):
         future = self.delete_torrent_futures.pop(str(alert.info_hash), None)
         if future:
             future.set_result(alert)
 
-    def _on_torrent_delete_failed_alert(self, alert):
+    async def _on_torrent_delete_failed_alert(self, alert):
         future = self.delete_torrent_futures.pop(str(alert.info_hash), None)
         if future:
             future.set_exception(AlertException(alert))

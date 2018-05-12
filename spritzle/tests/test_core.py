@@ -36,9 +36,9 @@ async def test_save_session_state(core):
 
 async def test_torrent_data(cli, core):
     info_hash = '44a040be6d74d8d290cd20128788864cbf770719'
-    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
+    torrent_address = str(cli.make_url('/test_torrents/random_one_file.torrent'))
     assert not core.torrent_data
-    await cli.post('/torrent', data={'url': torrent_address})
+    await cli.post('/torrent', json={'url': torrent_address})
     assert info_hash in core.torrent_data
     await cli.delete('/torrent/44a040be6d74d8d290cd20128788864cbf770719')
     assert not core.torrent_data

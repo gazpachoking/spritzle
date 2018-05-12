@@ -21,14 +21,13 @@
 #
 
 import asyncio
-from base64 import b64encode
 import shutil
 
 from asynctest import patch
 import libtorrent as lt
 import pytest
 
-from spritzle.tests import resume_data_dir, torrent_dir
+from spritzle.tests import resume_data_dir
 
 
 async def test_load(core):
@@ -43,9 +42,9 @@ async def test_load(core):
 
 async def test_new_torrent_saved(cli, core):
     assert len(list(core.state_dir.iterdir())) == 0
-    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
+    torrent_address = str(cli.make_url('/test_torrents/random_one_file.torrent'))
     info_hash = '44a040be6d74d8d290cd20128788864cbf770719'
-    await cli.post('/torrent', data={'url': torrent_address})
+    await cli.post('/torrent', json={'url': torrent_address})
     with open(core.state_dir / f'{info_hash}.resume', mode='rb') as f:
         data = lt.bdecode(f.read())
         assert b'paused' in data
@@ -55,8 +54,8 @@ async def test_new_torrent_saved(cli, core):
 async def test_resume_data_deleted(cli, core):
     info_hash = '44a040be6d74d8d290cd20128788864cbf770719'
     resume_file = core.state_dir / f'{info_hash}.resume'
-    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
-    await cli.post('/torrent', data={'url': torrent_address})
+    torrent_address = str(cli.make_url('/test_torrents/random_one_file.torrent'))
+    await cli.post('/torrent', json={'url': torrent_address})
     assert resume_file.is_file()
     await cli.delete(f'/torrent/{info_hash}')
     assert not resume_file.is_file()

@@ -25,7 +25,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import libtorrent as lt
-import aiohttp.web
 
 from spritzle.resource import torrent
 from spritzle.tests import torrent_dir
@@ -132,7 +131,7 @@ async def test_add_torrent_bad_args(cli):
 
 
 async def test_add_torrent_url(cli):
-    torrent_address = cli.make_url('/test_torrents/random_one_file.torrent')
+    torrent_address = str(cli.make_url('/test_torrents/random_one_file.torrent'))
 
     post_data = create_torrent_post_data(url=torrent_address)
 

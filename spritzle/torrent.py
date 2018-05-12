@@ -1,5 +1,5 @@
 #
-# spritzle/torrent_utils.py
+# spritzle/torrent.py
 #
 # Copyright (C) 2016 Andrew Resch <andrewresch@gmail.com>
 #
@@ -21,12 +21,7 @@
 #
 
 import asyncio
-import binascii
-import functools
 import logging
-from pathlib import Path
-
-import libtorrent as lt
 
 log = logging.getLogger('spritzle')
 
@@ -36,7 +31,7 @@ class AlertException(Exception):
         self.alert = alert
 
 
-class TorrentUtils(object):
+class Torrent(object):
     def __init__(self, core):
         self.core = core
         self.loop = asyncio.get_event_loop()
@@ -69,4 +64,3 @@ class TorrentUtils(object):
         future = self.delete_torrent_futures.pop(str(alert.info_hash), None)
         if future:
             future.set_exception(AlertException(alert))
-

@@ -29,7 +29,7 @@ import aiohttp
 from aiohttp import web
 
 import spritzle.common as common
-from spritzle.torrent_utils import AlertException
+from spritzle.torrent import AlertException
 
 import libtorrent as lt
 
@@ -188,7 +188,7 @@ async def delete_torrent(request):
     for tid in tids:
         handle = get_valid_handle(core, tid)
         try:
-            await core.torrent_utils.remove(handle, options)
+            await core.torrent.remove(handle, options)
         except AlertException as ex:
             log.error(f'Error deleting files for {handle.name()}')
         core.resume_data.delete(tid)

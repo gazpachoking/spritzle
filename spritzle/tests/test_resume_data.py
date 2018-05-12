@@ -21,9 +21,10 @@
 #
 
 import asyncio
-import asynctest
+from base64 import b64encode
 import shutil
 
+from asynctest import patch
 import libtorrent as lt
 import pytest
 
@@ -69,7 +70,7 @@ async def test_resume_data_save_loop(core, frequency):
     core_run_time = 0.61
     expected_runs = int(core_run_time / frequency)
     core.config['resume_data_save_frequency'] = frequency
-    with asynctest.patch('spritzle.resume_data.ResumeData.save_all') as mock_save:
+    with patch('spritzle.resume_data.ResumeData.save_all') as mock_save:
         await core.start()
         await asyncio.sleep(core_run_time)
         # Allow a bit of slop so the test isn't so fragile

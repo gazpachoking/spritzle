@@ -44,7 +44,7 @@ class Torrent(object):
         self.core.alert.register_handler('torrent_deleted_alert', self._on_torrent_deleted_alert)
         self.core.alert.register_handler('torrent_delete_failed_alert', self._on_torrent_delete_failed_alert)
 
-    def remove(self, torrent_handle, options=0):
+    async def remove(self, torrent_handle, options=0):
         info_hash = str(torrent_handle.info_hash())
 
         if info_hash not in self.remove_torrent_futures and info_hash not in self.delete_torrent_futures:
@@ -58,7 +58,7 @@ class Torrent(object):
             futures.append(self.remove_torrent_futures[info_hash])
         if info_hash in self.delete_torrent_futures:
             futures.append(self.delete_torrent_futures[info_hash])
-        return asyncio.gather(*futures)
+        await asyncio.gather(*futures)
 
     async def _on_torrent_removed_alert(self, alert):
         future = self.remove_torrent_futures.pop(str(alert.info_hash))

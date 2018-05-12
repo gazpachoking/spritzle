@@ -23,6 +23,8 @@
 import asyncio
 import logging
 
+import libtorrent as lt
+
 log = logging.getLogger('spritzle')
 
 
@@ -44,23 +46,28 @@ class Torrent(object):
 
     def remove(self, torrent_handle, options=0):
         info_hash = str(torrent_handle.info_hash())
-        future_dict = self.delete_torrent_futures if options else self.remove_torrent_futures
-        if info_hash not in future_dict:
-            future_dict[info_hash] = asyncio.Future()
+
+        if info_hash not in self.remove_torrent_futures and info_hash not in self.delete_torrent_futures:
+            self.remove_torrent_futures[info_hash] = asyncio.Future()
+            if options & lt.options_t.delete_files:
+                self.delete_torrent_futures[info_hash] = asyncio.Future()
             self.core.session.remove_torrent(torrent_handle, options)
-        return future_dict[info_hash]
+
+        futures = []
+        if info_hash in self.remove_torrent_futures:
+            futures.append(self.remove_torrent_futures[info_hash])
+        if info_hash in self.delete_torrent_futures:
+            futures.append(self.delete_torrent_futures[info_hash])
+        return asyncio.gather(*futures)
 
     async def _on_torrent_removed_alert(self, alert):
-        future = self.remove_torrent_futures.pop(str(alert.info_hash), None)
-        if future:
-            future.set_result(alert)
+        future = self.remove_torrent_futures.pop(str(alert.info_hash))
+        future.set_result(alert)
 
     async def _on_torrent_deleted_alert(self, alert):
-        future = self.delete_torrent_futures.pop(str(alert.info_hash), None)
-        if future:
-            future.set_result(alert)
+        future = self.delete_torrent_futures.pop(str(alert.info_hash))
+        future.set_result(alert)
 
     async def _on_torrent_delete_failed_alert(self, alert):
-        future = self.delete_torrent_futures.pop(str(alert.info_hash), None)
-        if future:
-            future.set_exception(AlertException(alert))
+        future = self.delete_torrent_futures.pop(str(alert.info_hash))
+        future.set_exception(AlertException(alert))

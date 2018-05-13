@@ -104,13 +104,16 @@ def test_handler_validation(monkeypatch):
         pass
 
     a = spritzle.alert.Alert()
+    valid_alert_type = 'torrent_paused_alert'
+    valid_category = 'storage_notification'
+    invalid_alert_type = 'invalid_alert_type'
 
     # Verify a valid handler doesn't raise anything
-    a.register_handler('torrent_paused_alert', valid_handler)
-    a.register_handler('storage_notification', valid_handler)
+    a.register_handler(valid_alert_type, valid_handler)
+    a.register_handler(valid_category, valid_handler)
 
     with pytest.raises(ValueError):
-        a.register_handler('torrent_paused_alert', invalid_handler)
+        a.register_handler(valid_alert_type, invalid_handler)
 
     with pytest.raises(ValueError):
-        a.register_handler('not an alert type', valid_handler)
+        a.register_handler(invalid_alert_type, valid_handler)

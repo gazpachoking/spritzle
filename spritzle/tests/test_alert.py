@@ -96,7 +96,7 @@ async def test_pop_alerts(monkeypatch):
     handler_three.assert_called_with(alert_test_one)
 
 
-def test_handler_validation(monkeypatch):
+async def test_handler_validation():
     async def valid_handler(alert):
         pass
 

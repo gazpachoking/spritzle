@@ -3,6 +3,7 @@ import threading
 from unittest.mock import Mock
 
 import libtorrent as lt
+import pytest
 
 from spritzle.alert import Alert
 from spritzle.torrent import Torrent
@@ -23,7 +24,7 @@ class MockAlert(Alert):
         self.event.clear()
         return result
 
-    def push_alert(self, alert_type, **kwargs):
+    async def push_alert(self, alert_type, **kwargs):
         alert = Mock(**{
             'what.return_value': alert_type,
             'category.return_value': 0
@@ -41,10 +42,17 @@ class MockAlert(Alert):
         self.pop_alerts_task = asyncio.ensure_future(self.pop_alerts())
 
 
-async def test_torrent_remove(loop):
-    core = Mock(alert=MockAlert())
+@pytest.fixture
+async def mock_alert():
+    mock_alert = MockAlert()
+    await mock_alert.start(None)
+    yield mock_alert
+    await mock_alert.stop()
+
+
+async def test_torrent_remove(loop, mock_alert):
+    core = Mock(alert=mock_alert)
     torrent = Torrent(core)
-    await core.alert.start(None)
 
     info_hash = '1234567890'
     torrent_handle = Mock(**{
@@ -55,13 +63,12 @@ async def test_torrent_remove(loop):
     # Make sure we allow a context switch to let remove_task run
     await asyncio.sleep(0)
     assert not remove_task.done()
-    core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
+    await core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
     await asyncio.wait_for(remove_task, 1)
     remove_task = loop.create_task(torrent.remove(torrent_handle, lt.options_t.delete_files))
     await asyncio.sleep(0)
     assert not remove_task.done()
-    core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
+    await core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
     assert not remove_task.done()
-    core.alert.push_alert('torrent_deleted_alert', info_hash=info_hash)
+    await core.alert.push_alert('torrent_deleted_alert', info_hash=info_hash)
     await asyncio.wait_for(remove_task, 1)
-    await core.alert.stop()

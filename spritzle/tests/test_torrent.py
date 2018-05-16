@@ -1,39 +1,67 @@
 import asyncio
+import threading
 from unittest.mock import Mock
 
 import libtorrent as lt
 
+from spritzle.alert import Alert
 from spritzle.torrent import Torrent
 
 
-async def test_torrent():
-    torrent = Torrent(Mock())
-    info_hash = 'aoeuaoeu'
+class MockAlert(Alert):
+    def __init__(self):
+        super().__init__()
+        self._alerts = []
+        self.event = threading.Event()
+
+    def _wait_for_alerts(self, timeout):
+        return self.event.wait(timeout/1000)
+
+    def _pop_alerts(self):
+        result = self._alerts
+        self._alerts = []
+        self.event.clear()
+        return result
+
+    def push_alert(self, alert_type, **kwargs):
+        alert = Mock(**{
+            'what.return_value': alert_type,
+            'category.return_value': 0
+        })
+        alert.configure_mock(**kwargs)
+        self._alerts.append(alert)
+        self.event.set()
+
+    async def start(self, session):
+        self.session = Mock(
+            wait_for_alerts=self._wait_for_alerts,
+            pop_alerts=self._pop_alerts
+        )
+        self.run = True
+        self.pop_alerts_task = asyncio.ensure_future(self.pop_alerts())
+
+
+async def test_torrent_remove(loop):
+    core = Mock(alert=MockAlert())
+    torrent = Torrent(core)
+    await core.alert.start(None)
+
+    info_hash = '1234567890'
     torrent_handle = Mock(**{
         'info_hash.return_value': info_hash
     })
-    torrent_removed_alert = Mock(**{
-        'info_hash': info_hash,
-        'what.return_value': 'torrent_removed_alert',
-        'category.return_value': 0
-    })
-    torrent_deleted_alert = Mock(**{
-        'info_hash': info_hash,
-        'what.return_value': 'torrent_deleted_alert',
-        'category.return_value': 0
-    })
 
-    future = asyncio.ensure_future(torrent.remove(torrent_handle))
-    # Need to context switch to allow the task to run
-    await asyncio.sleep(0.01)
-    assert not future.done()
-    await torrent._on_torrent_removed_alert(torrent_removed_alert)
-    await asyncio.wait_for(future, 1)
-    future = asyncio.ensure_future(torrent.remove(torrent_handle, lt.options_t.delete_files))
-    # Need to context switch to allow the task to run
-    await asyncio.sleep(0.01)
-    assert not future.done()
-    await torrent._on_torrent_removed_alert(torrent_removed_alert)
-    assert not future.done()
-    await torrent._on_torrent_deleted_alert(torrent_deleted_alert)
-    await asyncio.wait_for(future, 1)
+    remove_task = loop.create_task(torrent.remove(torrent_handle))
+    # Make sure we allow a context switch to let remove_task run
+    await asyncio.sleep(0)
+    assert not remove_task.done()
+    core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
+    await asyncio.wait_for(remove_task, 1)
+    remove_task = loop.create_task(torrent.remove(torrent_handle, lt.options_t.delete_files))
+    await asyncio.sleep(0)
+    assert not remove_task.done()
+    core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
+    assert not remove_task.done()
+    core.alert.push_alert('torrent_deleted_alert', info_hash=info_hash)
+    await asyncio.wait_for(remove_task, 1)
+    await core.alert.stop()

@@ -36,8 +36,6 @@ class AlertException(Exception):
 class Torrent(object):
     def __init__(self, core):
         self.core = core
-        self.loop = asyncio.get_event_loop()
-
         self.remove_torrent_futures = {}
         self.delete_torrent_futures = {}
         self.core.alert.register_handler('torrent_removed_alert', self._on_torrent_removed_alert)

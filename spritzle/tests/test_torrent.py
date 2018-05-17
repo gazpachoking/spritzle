@@ -62,11 +62,15 @@ async def test_torrent_remove(loop, mock_alert):
     remove_task = loop.create_task(torrent.remove(torrent_handle))
     # Make sure we allow a context switch to let remove_task run
     await asyncio.sleep(0)
+    core.session.remove_torrent.assert_called_once_with(torrent_handle, 0)
     assert not remove_task.done()
     await core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
     await asyncio.wait_for(remove_task, 1)
+    core.reset_mock()
+
     remove_task = loop.create_task(torrent.remove(torrent_handle, lt.options_t.delete_files))
     await asyncio.sleep(0)
+    core.session.remove_torrent.assert_called_once_with(torrent_handle, lt.options_t.delete_files)
     assert not remove_task.done()
     await core.alert.push_alert('torrent_removed_alert', info_hash=info_hash)
     assert not remove_task.done()

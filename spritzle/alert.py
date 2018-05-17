@@ -101,7 +101,7 @@ class Alert(object):
                 if not (self.run or run_once):
                     break
 
-                futures = []
+                tasks = []
                 for alert in self.session.pop_alerts():
                     handlers = set()
                     handlers.update(self.handlers.get(alert.what(), []))
@@ -110,12 +110,12 @@ class Alert(object):
                         if alert.category() & v:
                             handlers.update(self.handlers.get(k, []))
                     for handler in handlers:
-                        futures.append(self.loop.create_task(handler(alert)))
+                        tasks.append(self.loop.create_task(handler(alert)))
 
                 # We have to make sure all alert handlers have completed before
                 # calling pop_alerts() again as it will invalidate all previous
                 # libtorrent alert objects.
-                await asyncio.gather(*futures)
+                await asyncio.gather(*tasks)
 
             if run_once:
                 break
